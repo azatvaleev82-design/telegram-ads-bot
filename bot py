@@ -1,0 +1,55 @@
+import asyncio
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command
+
+TOKEN = 8228321718:AAFSpJiy0rcXNdH-lZ4RVwSlFDCGw_BgSaY
+GROUP_ID = -1003477386666
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+users = {}
+
+@dp.message(Command("start"))
+async def start(message: types.Message):
+    await message.answer("👋 Отправь /anketa")
+
+@dp.message(Command("anketa"))
+async def anketa(message: types.Message):
+    users[message.from_user.id] = {}
+    await message.answer("📍 Город?")
+
+@dp.message()
+async def form(message: types.Message):
+    uid = message.from_user.id
+
+    if uid not in users:
+        return
+
+    data = users[uid]
+
+    if "city" not in data:
+        data["city"] = message.text
+        await message.answer("📝 Текст?")
+        return
+
+    if "text" not in data:
+        data["text"] = message.text
+        await message.answer("📞 @username?")
+        return
+
+    if "contact" not in data:
+        data["contact"] = message.text
+
+        await bot.send_message(
+            GROUP_ID,
+            f"📍 {data['city']}\n📝 {data['text']}\n⭐ Контакт скрыт"
+        )
+
+        await message.answer("✅ Готово!")
+
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
